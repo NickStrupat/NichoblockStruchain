@@ -18,15 +18,16 @@ namespace TheBlockchainTM
 
 		public void AddBlock(TData data) => Chain.AddLast(new Block<TData>(GetLatestBlock().Hash, data));
 
-		public bool IsValid()
+		public Boolean IsValid()
 		{
-			var previousBlock = Chain.First;
+			var previousBlock = Chain.First.Value;
 			foreach (var currentBlock in Chain.Skip(1))
 			{
 				if (currentBlock.Hash != currentBlock.CalculateHash())
 					return false;
-				if (currentBlock.PreviousHash != previousBlock.Value.Hash)
+				if (currentBlock.PreviousHash != previousBlock.Hash)
 					return false;
+				previousBlock = currentBlock;
 			}
 			return true;
 		}

@@ -6,15 +6,24 @@ namespace TheBlockchainTM
 	[StructLayout(LayoutKind.Explicit, Pack = 1, Size = ByteSize)]
 	public struct Sha256Hash : IEquatable<Sha256Hash>
 	{
-		public const Int32 ByteSize = 256 / 8;
+		private const Byte BitsPerByte = 8;
+		public const Int32 ByteSize = 256 / BitsPerByte;
+
+		// Static asserts
+#pragma warning disable 219
+		private const SByte StaticAssertErrorValue = -1;
+		private const Byte UInt32CountPerHash = ByteSize % 4 == 0 ? ByteSize / sizeof(UInt32) : StaticAssertErrorValue;
+		private const Byte UInt64CountPerHash = ByteSize % 8 == 0 ? ByteSize / sizeof(UInt64) : StaticAssertErrorValue;
+#pragma warning restore 219
+
 		public Span<Byte> Bytes => MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref this, 1));
 		public override String ToString() => BytesToHexString(Bytes);
 
 		public Boolean Equals(Sha256Hash other)
 		{
-			var uint32s = MemoryMarshal.Cast<Byte, UInt32>(Bytes);
-			var uint32sOther = MemoryMarshal.Cast<Byte, UInt32>(other.Bytes);
-			for (var i = 0; i != uint32s.Length; i++)
+			var uint32s = MemoryMarshal.Cast<Byte, UInt64>(Bytes);
+			var uint32sOther = MemoryMarshal.Cast<Byte, UInt64>(other.Bytes);
+			for (var i = 0; i != UInt64CountPerHash; i++)
 				if (uint32s[i] != uint32sOther[i])
 					return false;
 			return true;
@@ -26,13 +35,13 @@ namespace TheBlockchainTM
 		{
 			var hashCode = new HashCode();
 			var uint32s = MemoryMarshal.Cast<Byte, UInt32>(Bytes);
-			for (var i = 0; i != uint32s.Length; i++)
+			for (var i = 0; i != UInt32CountPerHash; i++)
 				hashCode.Add(uint32s[i]);
 			return hashCode.ToHashCode();
 		}
 
-		public static bool operator ==(Sha256Hash left, Sha256Hash right) => left.Equals(right);
-		public static bool operator !=(Sha256Hash left, Sha256Hash right) => !left.Equals(right);
+		public static Boolean operator ==(Sha256Hash left, Sha256Hash right) => left.Equals(right);
+		public static Boolean operator !=(Sha256Hash left, Sha256Hash right) => !left.Equals(right);
 
 		// https://stackoverflow.com/a/24343727
 		private static readonly UInt32[] lookup32 = CreateLookup32();
