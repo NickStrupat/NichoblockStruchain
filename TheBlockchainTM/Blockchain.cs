@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TheBlockchainTM
 {
-	public class Blockchain<TData>
+	public class Blockchain<TData> where TData : IEquatable<TData>
 	{
 		public LinkedList<Block<TData>> Chain { get; }
 
