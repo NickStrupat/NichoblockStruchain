@@ -11,6 +11,7 @@ namespace Testing
 			blockchain.AddBlock("test");
 			blockchain.AddBlock("test2");
 			blockchain.AddBlock("test3");
+			Console.WriteLine(blockchain.IsValid());
 		}
 	}
 }

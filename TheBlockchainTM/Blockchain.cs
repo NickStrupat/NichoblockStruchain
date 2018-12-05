@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TheBlockchainTM
 {
@@ -16,5 +17,18 @@ namespace TheBlockchainTM
 		public Block<TData> GetLatestBlock() => Chain.Last.Value;
 
 		public void AddBlock(TData data) => Chain.AddLast(new Block<TData>(GetLatestBlock().Hash, data));
+
+		public bool IsValid()
+		{
+			var previousBlock = Chain.First;
+			foreach (var currentBlock in Chain.Skip(1))
+			{
+				if (currentBlock.Hash != currentBlock.CalculateHash())
+					return false;
+				if (currentBlock.PreviousHash != previousBlock.Value.Hash)
+					return false;
+			}
+			return true;
+		}
 	}
 }
