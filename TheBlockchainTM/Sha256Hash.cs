@@ -6,14 +6,15 @@ namespace TheBlockchainTM
 	[StructLayout(LayoutKind.Explicit, Pack = 1, Size = ByteSize)]
 	public struct Sha256Hash : IEquatable<Sha256Hash>
 	{
+		public const Int32 ByteSize = BitsInHash / BitsPerByte;
+		private const Int32 BitsInHash = 256;
 		private const Byte BitsPerByte = 8;
-		public const Int32 ByteSize = 256 / BitsPerByte;
 
 		// Static asserts
 #pragma warning disable 219
 		private const SByte StaticAssertErrorValue = -1;
-		private const Byte UInt32CountPerHash = ByteSize % 4 == 0 ? ByteSize / sizeof(UInt32) : StaticAssertErrorValue;
-		private const Byte UInt64CountPerHash = ByteSize % 8 == 0 ? ByteSize / sizeof(UInt64) : StaticAssertErrorValue;
+		private const Byte UInt32CountPerHash = ByteSize % sizeof(UInt32) == 0 ? ByteSize / sizeof(UInt32) : StaticAssertErrorValue;
+		private const Byte UInt64CountPerHash = ByteSize % sizeof(UInt64) == 0 ? ByteSize / sizeof(UInt64) : StaticAssertErrorValue;
 #pragma warning restore 219
 
 		public Span<Byte> Bytes => MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref this, 1));
