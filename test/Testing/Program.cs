@@ -7,7 +7,7 @@ namespace Testing
 	{
 		static void Main(String[] args)
 		{
-			var blockchain = new Blockchain<String>();
+			var blockchain = new Blockchain<String>(String.Empty);
 			blockchain.AddBlock("test");
 			blockchain.AddBlock("test2");
 			blockchain.AddBlock("test3");
