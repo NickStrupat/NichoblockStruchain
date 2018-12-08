@@ -13,7 +13,7 @@ namespace TheBlockchainTM
 		{
 			var tcpClient = new TcpClient("127.0.0.1", port);
 			nodes.Add(tcpClient.Client);
-			tcpClient.
+			//tcpClient.
 		}
 	}
 }
