@@ -8,10 +8,11 @@ namespace TheBlockchainTM
 	{
 		public LinkedList<Block<TData>> Chain { get; }
 
-		public Blockchain()
+		public Blockchain(TData genesisData)
 		{
+			var genesisBlock = new Block<TData>(default, genesisData);
 			Chain = new LinkedList<Block<TData>>();
-			Chain.AddFirst(new Block<TData>(default, default));
+			Chain.AddFirst(genesisBlock);
 		}
 
 		public Block<TData> GetLatestBlock() => Chain.Last.Value;
