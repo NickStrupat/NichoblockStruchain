@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Text;
+using MessagePack;
 
 namespace TheBlockchainTM
 {
@@ -22,9 +22,13 @@ namespace TheBlockchainTM
 
 		private static readonly Boolean IsNullable = !typeof(TData).IsValueType;
 
-		public Sha256Hash CalculateHash()
+		internal Sha256Hash CalculateHash()
 		{
-			var dataToStringBytes = IsNullable && Data == null ? ReadOnlySpan<Byte>.Empty : Encoding.UTF8.GetBytes(Data.ToString());
+			var dataToStringBytes =
+				IsNullable && Data == null
+					? ReadOnlySpan<Byte>.Empty
+					: MessagePackSerializer.Serialize(Data, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+
 			var timeStamp = TimeStamp;
 			var timeStampBytes = MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref timeStamp, 1));
 			Span<Byte> inputBytes = stackalloc Byte[dataToStringBytes.Length + timeStampBytes.Length + Sha256Hash.ByteSize];
