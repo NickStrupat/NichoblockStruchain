@@ -11,7 +11,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{0B7404BD-286
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{51942724-B5E4-4210-B330-55B87A110226}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NodeWebApi", "src\NodeWebApi\NodeWebApi.csproj", "{B3169813-995B-4F18-A9EA-66572A29B7AF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NodeWebApi", "src\NodeWebApi\NodeWebApi.csproj", "{B3169813-995B-4F18-A9EA-66572A29B7AF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5324F95B-17FE-4D05-97CF-430EBBC16A4B}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
