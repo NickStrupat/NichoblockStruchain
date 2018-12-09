@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System.Collections.Generic;
+using System.Net;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -16,7 +18,9 @@ namespace NodeWebApi
 		public void ConfigureServices(IServiceCollection services) =>
 			services
 				.AddMvc()
-				.SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+				.SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
+				.Services
+					.AddSingleton<HashSet<IPEndPoint>>();
 
 		// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 		IApplicationBuilder UseDevOrProd(IApplicationBuilder app, IHostingEnvironment env) => env.IsDevelopment() ? app.UseDeveloperExceptionPage() : app.UseHsts();
