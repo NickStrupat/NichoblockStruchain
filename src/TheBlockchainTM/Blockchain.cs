@@ -17,7 +17,8 @@ namespace TheBlockchainTM
 
 		public Block<TData> GetLatestBlock() => Chain.Last.Value;
 
-		public void AddBlock(TData data) => Chain.AddLast(new Block<TData>(GetLatestBlock().Hash, data));
+		public Block<TData> AddBlock(Block<TData> block) => Chain.AddLast(block).Value;
+		public Block<TData> AddBlock(TData data) => AddBlock(new Block<TData>(GetLatestBlock().Hash, data));
 
 		public Boolean IsValid()
 		{

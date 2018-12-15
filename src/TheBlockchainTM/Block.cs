@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -6,16 +8,16 @@ using MessagePack;
 
 namespace TheBlockchainTM
 {
-	public struct Block<TData> where TData : IEquatable<TData>
+	public class Block<TData> : IEquatable<Block<TData>> where TData : IEquatable<TData>
 	{
 		const Int32 StackAllocMaxLimitInBytes = 1024;
 
 		public DateTime TimeStamp { get; }
-		public Sha256Hash PreviousHash { get; }
+		public Byte[] PreviousHash { get; }
 		public TData Data { get; }
-		public Sha256Hash Hash { get; }
+		public Byte[] Hash { get; }
 
-		public Block(Sha256Hash previousHash, TData data)
+		public Block(Byte[] previousHash, TData data)
 		{
 			TimeStamp = DateTime.UtcNow;
 			PreviousHash = previousHash;
@@ -26,7 +28,7 @@ namespace TheBlockchainTM
 		private static readonly Boolean IsDataNullable = !typeof(TData).IsValueType;
 		private static Boolean HasMessagePackObjectAttribute(TData data) => data.GetType().GetCustomAttribute<MessagePackObjectAttribute>() != null;
 
-		internal Sha256Hash CalculateHash()
+		internal Byte[] CalculateHash()
 		{
 			ReadOnlySpan<Byte> dataAsMessagePackBytes =
 				HasMessagePackObjectAttribute(Data)
@@ -44,15 +46,28 @@ namespace TheBlockchainTM
 
 			dataAsMessagePackBytes.CopyTo(inputBytes);
 			timeStampBytes.CopyTo(inputBytes.Slice(dataAsMessagePackBytes.Length));
-			PreviousHash.Bytes.CopyTo(inputBytes.Slice(dataAsMessagePackBytes.Length + timeStampBytes.Length));
-			var hash = new Sha256Hash();
+			PreviousHash.CopyTo(inputBytes.Slice(dataAsMessagePackBytes.Length + timeStampBytes.Length));
+			var hash = new Byte[Sha256Hash.ByteSize];
 			using (var sha256 = SHA256.Create())
 			{
-				var wasHashComputed = sha256.TryComputeHash(inputBytes, hash.Bytes, out var bytesWritten);
+				var wasHashComputed = sha256.TryComputeHash(inputBytes, hash, out var bytesWritten);
 				if (!wasHashComputed | bytesWritten != Sha256Hash.ByteSize)
 					throw new InvalidOperationException("Something crazy happened");
 				return hash;
 			}
 		}
+
+		public Boolean Equals(Block<TData> other) =>
+			!ReferenceEquals(other, null) &&
+			TimeStamp.Equals(other.TimeStamp) &&
+			PreviousHash.SequenceEqual(other.PreviousHash) &&
+			EqualityComparer<TData>.Default.Equals(Data, other.Data) &&
+			Hash.SequenceEqual(other.Hash);
+
+		public override Boolean Equals(Object obj) => obj is Block<TData> other && Equals(other);
+		public override Int32 GetHashCode() => HashCode.Combine(TimeStamp, PreviousHash, Data, Hash);
+
+		public static Boolean operator ==(Block<TData> left, Block<TData> right) => ReferenceEquals(left, right) || !ReferenceEquals(left, null) && left.Equals(right);
+		public static Boolean operator !=(Block<TData> left, Block<TData> right) => !(left == right);
 	}
 }
