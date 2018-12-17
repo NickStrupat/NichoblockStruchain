@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NodeWebApi.DataModel;
 using TheBlockchainTM;
 
 namespace NodeWebApi
@@ -25,6 +26,9 @@ namespace NodeWebApi
 			services
 				.AddMvc()
 				.SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+			services
+				.AddDbContext<Context>();
 
 			services
 				.AddSignalR();
