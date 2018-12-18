@@ -8,10 +8,10 @@ namespace NodeWebApi.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
-	public class NodesController : ControllerBase
+	public class NodeController : ControllerBase
 	{
 		private readonly HashSet<IPEndPoint> nodes;
-		public NodesController(HashSet<IPEndPoint> nodes) => this.nodes = nodes;
+		public NodeController(HashSet<IPEndPoint> nodes) => this.nodes = nodes;
 
 		public IEnumerable<String> Get() => nodes.Select(x => x.ToString());
 
