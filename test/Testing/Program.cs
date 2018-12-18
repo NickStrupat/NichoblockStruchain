@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using NodeWebApi.DataModel;
@@ -16,7 +17,8 @@ namespace Testing
 			var b = keys1.PublicKey.SequenceEqual(keys2.PublicKey);
 			var b2 = keys1.PrivateKey.SequenceEqual(keys2.PrivateKey);
 
-			var from1 = AsymmetricCryptography.Encrypt(Encoding.ASCII.GetBytes("testing"), keys2.PublicKey, keys1.PublicKey, keys1.PrivateKey);
+			var cipher = AsymmetricCryptography.Encrypt(Encoding.ASCII.GetBytes("testing".PadRight(258, 'g')), keys1.PublicKey);
+			var plain = Encoding.ASCII.GetString(AsymmetricCryptography.Decrypt(cipher, keys1.PrivateKey));
 
 			using (var context = new Context())
 			{
