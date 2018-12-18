@@ -25,7 +25,7 @@ namespace NodeWebApi.DataModel
 				.HasPrincipalKey(n => n.Id);
 
 			modelBuilder.Entity<Block>()
-				.HasAlternateKey(b => new {b.Id, b.NodeId});
+				.HasKey(b => new {b.Id, b.NodeId});
 		}
 	}
 }
