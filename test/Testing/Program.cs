@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using MessagePack;
 using Microsoft.EntityFrameworkCore;
 using NodeWebApi.DataModel;
 using TheBlockchainTM;
@@ -12,20 +13,23 @@ namespace Testing
 	{
 		static void Main(String[] args)
 		{
-			var keys1 = AsymmetricCryptography.GenerateNewPublicPrivateKeyPair();
-			var keys2 = AsymmetricCryptography.GenerateNewPublicPrivateKeyPair();
+			var bytes = Encoding.UTF8.GetBytes("test".PadRight(258, 'g'));
+
+			var keys1 = DigitalSignature.GenerateNewPublicPrivateKeyPair();
+			var keys2 = DigitalSignature.GenerateNewPublicPrivateKeyPair();
 			var b = keys1.PublicKey.SequenceEqual(keys2.PublicKey);
 			var b2 = keys1.PrivateKey.SequenceEqual(keys2.PrivateKey);
 
-			var cipher = AsymmetricCryptography.Encrypt(Encoding.ASCII.GetBytes("testing".PadRight(258, 'g')), keys1.PublicKey);
-			var plain = Encoding.ASCII.GetString(AsymmetricCryptography.Decrypt(cipher, keys1.PrivateKey));
+			var signature = DigitalSignature.GetSignature(bytes, keys1.PublicKey, keys1.PrivateKey);
+			var unverified = DigitalSignature.VerifySignature(bytes, signature, keys2.PublicKey);
+			var verified = DigitalSignature.VerifySignature(bytes, signature, keys1.PublicKey);
 
 			using (var context = new Context())
 			{
 				context.Database.EnsureDeleted();
 				context.Database.EnsureCreated();
 
-				var (publicKey, privateKey) = AsymmetricCryptography.GenerateNewPublicPrivateKeyPair();
+				var (publicKey, privateKey) = DigitalSignature.GenerateNewPublicPrivateKeyPair();
 				var node = new Node("Testing", publicKey, privateKey);
 				node.Blocks.Add(new Block("genesis"));
 				context.Nodes.Add(node);
