@@ -6,7 +6,7 @@ namespace NodeWebApi.DataModel
 	public class Block<TData> : IEquatable<Block<TData>> where TData : IEquatable<TData>
 	{
 		public virtual Int64 Id { get; private set; }
-		public virtual Int64 NodeId { get; private set; }
+		public virtual Int64 NodeId { get; set; }
 		public virtual DateTime Timestamp { get; protected set; } = DateTime.UtcNow;
 		//public virtual Byte[] PreviousHash { get; protected set; }
 		public virtual TData Data { get; protected set; }
