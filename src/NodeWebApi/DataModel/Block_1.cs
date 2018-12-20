@@ -1,18 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using MessagePack;
+using TheBlockchainTM;
 
 namespace NodeWebApi.DataModel
 {
 	public class Block<TData> : IEquatable<Block<TData>> where TData : IEquatable<TData>
 	{
-		public virtual Int64 Id { get; private set; }
-		public virtual Int64 NodeId { get; set; }
-		public virtual DateTime Timestamp { get; protected set; } = DateTime.UtcNow;
-		//public virtual Byte[] PreviousHash { get; protected set; }
-		public virtual TData Data { get; protected set; }
-		//public virtual Byte[] Hash { get; protected set; }
-
-		public virtual Node Node { get; set; }
+		public Guid Id { get; private set; } = Guid.NewGuid();
+		public Int64 NodeId { get; set; }
+		public DateTime Timestamp { get; private set; } = DateTime.UtcNow;
+		//public Byte[] PreviousHash { get; protected set; }
+		public TData Data { get; private set; }
+		[Required]
+		public Byte[] Signature { get; private set; }
+		//public Byte[] Hash { get; protected set; }
+		[Required]
+		public Node Node { get; set; }
 
 		private Block() { }
 
@@ -26,6 +31,27 @@ namespace NodeWebApi.DataModel
 		//	Data = IsDataNullable && data == null ? throw new ArgumentNullException(nameof(data)) : data;
 		//	Hash = CalculateHash();
 		//}
+
+		public void Sign()
+		{
+			if (Node == null)
+				throw new InvalidOperationException($"`{Node}` property must be loaded to sign.");
+			Signature = null;
+			var bytes = MessagePackSerializer.Serialize(this, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+			Signature = DigitalSignature.GetSignature(bytes, Node.PublicKey, Node.PrivateKey);
+		}
+
+		public Boolean IsSignatureValid()
+		{
+			if (Node == null)
+				throw new InvalidOperationException($"`{Node}` property must be loaded to verify the signature.");
+			var signature = Signature;
+			Signature = null;
+			var bytes = MessagePackSerializer.Serialize(this, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+			var isValid = DigitalSignature.VerifySignature(bytes, signature, Node.PublicKey);
+			Signature = signature;
+			return isValid;
+		}
 
 		public Boolean Equals(Block<TData> other) => !ReferenceEquals(null, other) && EqualsInternal(other);
 

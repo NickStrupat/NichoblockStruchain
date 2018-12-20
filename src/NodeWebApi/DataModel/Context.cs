@@ -26,6 +26,10 @@ namespace NodeWebApi.DataModel
 
 			modelBuilder.Entity<Block>()
 				.HasKey(b => new {b.Id, b.NodeId});
+
+			modelBuilder.Entity<Node>()
+				.HasIndex(n => n.Name)
+				.IsUnique();
 		}
 	}
 }

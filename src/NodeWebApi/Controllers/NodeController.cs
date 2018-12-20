@@ -9,8 +9,9 @@ using NodeWebApi.DataModel;
 
 namespace NodeWebApi.Controllers
 {
-	[Route("api/[controller]")]
-	[ApiController]
+	[Route("[controller]")]
+	//[Route("api/[controller]")]
+	//[ApiController]
 	public class NodeController : ControllerBase
 	{
 		private readonly HashSet<IPEndPoint> nodes;

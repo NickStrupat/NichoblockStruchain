@@ -5,7 +5,7 @@ using NodeWebApi.DataModel;
 
 namespace NodeWebApi.Controllers
 {
-	[Route("api/[controller]")]
+	[Route("[controller]")]
 	public class BlockController : ControllerBase
 	{
 		private readonly Context context;

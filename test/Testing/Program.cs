@@ -29,9 +29,9 @@ namespace Testing
 				context.Database.EnsureDeleted();
 				context.Database.EnsureCreated();
 
-				var (publicKey, privateKey) = DigitalSignature.GenerateNewPublicPrivateKeyPair();
-				var node = new Node("Testing", publicKey, privateKey);
-				node.Blocks.Add(new Block("genesis"));
+				var node = new Node("Testing");
+				var block = new Block("genesis");
+				node.Blocks.Add(block);
 				context.Nodes.Add(node);
 
 				context.SaveChanges();
