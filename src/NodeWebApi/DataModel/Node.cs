@@ -20,18 +20,9 @@ namespace NodeWebApi.DataModel
 		public Node(String name)
 		{
 			Name = name ?? throw new ArgumentNullException(nameof(name));
-			var (publicKey, privateKey) = DigitalSignature.GenerateNewPublicPrivateKeyPair();
-			PublicKey = publicKey;
-			PrivateKey = privateKey;
+			(PublicKey, PrivateKey) = DigitalSignature.GenerateNewPublicPrivateKeyPair();
 		}
 
-		//public Node(String name, Byte[] publicKey, Byte[] privateKey)
-		//{
-		//	Name = name ?? throw new ArgumentNullException(nameof(name));
-		//	PublicKey = publicKey;
-		//	PrivateKey = privateKey;
-		//}
-
-		public HashSet<Block> Blocks { get; set; } = new HashSet<Block>();
+		public HashSet<Block> Blocks { get; private set; } = new HashSet<Block>();
 	}
 }

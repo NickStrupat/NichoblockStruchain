@@ -14,6 +14,7 @@ namespace Testing
 		static void Main(String[] args)
 		{
 			var bytes = Encoding.UTF8.GetBytes("test".PadRight(258, 'g'));
+			var bytes2 = Encoding.UTF8.GetBytes("test".PadRight(123258, 'g'));
 
 			var keys1 = DigitalSignature.GenerateNewPublicPrivateKeyPair();
 			var keys2 = DigitalSignature.GenerateNewPublicPrivateKeyPair();
@@ -21,6 +22,9 @@ namespace Testing
 			var b2 = keys1.PrivateKey.SequenceEqual(keys2.PrivateKey);
 
 			var signature = DigitalSignature.GetSignature(bytes, keys1.PublicKey, keys1.PrivateKey);
+			var signature2 = DigitalSignature.GetSignature(bytes, keys2.PublicKey, keys2.PrivateKey);
+			var signature3 = DigitalSignature.GetSignature(bytes2, keys1.PublicKey, keys1.PrivateKey);
+			var signature4 = DigitalSignature.GetSignature(bytes2, keys2.PublicKey, keys2.PrivateKey);
 			var unverified = DigitalSignature.VerifySignature(bytes, signature, keys2.PublicKey);
 			var verified = DigitalSignature.VerifySignature(bytes, signature, keys1.PublicKey);
 

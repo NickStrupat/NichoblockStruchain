@@ -11,13 +11,12 @@ namespace TheBlockchainTM
 
 		public static (Byte[] PublicKey, Byte[] PrivateKey) GenerateNewPublicPrivateKeyPair()
 		{
+			ECParameters ecParameters;
 			using (var ecDsa = ECDsa.Create(Curve))
-			{
-				var ecParameters = ecDsa.ExportParameters(true);
-				var publicKey = MessagePackSerializer.Serialize(ecParameters.Q, FormatterResolver);
-				var privateKey = ecParameters.D;
-				return (publicKey, privateKey);
-			}
+				ecParameters = ecDsa.ExportParameters(includePrivateParameters: true);
+			var publicKey = MessagePackSerializer.Serialize(ecParameters.Q, FormatterResolver);
+			var privateKey = ecParameters.D;
+			return (publicKey, privateKey);
 		}
 
 		public static Byte[] GetSignature(Byte[] data, Byte[] publicKey, Byte[] privateKey)
