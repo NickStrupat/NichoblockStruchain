@@ -1,22 +1,19 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-//using MessagePack;
 
 namespace TheBlockchainTM
 {
 	public static class DigitalSignature
 	{
 		private static readonly ECCurve Curve = ECCurve.NamedCurves.nistP521;
-		//private static readonly IFormatterResolver FormatterResolver = MessagePack.Resolvers.ContractlessStandardResolver.Instance;
 
 		public static (Byte[] PublicKey, Byte[] PrivateKey) GenerateNewPublicPrivateKeyPair()
 		{
 			ECParameters ecParameters;
 			using (var ecDsa = ECDsa.Create(Curve))
 				ecParameters = ecDsa.ExportParameters(includePrivateParameters: true);
-			var publicKey = GetBytes(ecParameters.Q);//MessagePackSerializer.Serialize(ecParameters.Q, FormatterResolver));
+			var publicKey = GetBytes(ecParameters.Q);
 			var privateKey = ecParameters.D;
 			return (publicKey, privateKey);
 		}
@@ -30,7 +27,7 @@ namespace TheBlockchainTM
 			if (privateKey == null)
 				throw new ArgumentNullException(nameof(privateKey));
 
-			var ecPoint = GetEcPoint(publicKey);//MessagePackSerializer.Deserialize<ECPoint>(publicKey, FormatterResolver));
+			var ecPoint = GetEcPoint(publicKey);
 			var signingEcParameters = new ECParameters { Curve = Curve, Q = ecPoint, D = privateKey };
 			signingEcParameters.Validate();
 			using (var ecDsa = ECDsa.Create(signingEcParameters))
@@ -42,7 +39,7 @@ namespace TheBlockchainTM
 			if (publicKey == null)
 				throw new ArgumentNullException(nameof(publicKey));
 
-			var ecPoint = GetEcPoint(publicKey);//MessagePackSerializer.Deserialize<ECPoint>(publicKey, FormatterResolver);
+			var ecPoint = GetEcPoint(publicKey);
 			var signingEcParameters = new ECParameters { Curve = Curve, Q = ecPoint, D = null };
 			signingEcParameters.Validate();
 			using (var ecDsa = ECDsa.Create(signingEcParameters))
@@ -51,16 +48,14 @@ namespace TheBlockchainTM
 
 		private static Byte[] GetBytes(ECPoint ecPoint)
 		{
-			const Int32 headerSize = sizeof(Int32) * 2; // one `Int32` to hold each length
-			var xLength = ecPoint.X.Length;
-			var yLength = ecPoint.Y.Length;
-			var bytes = new Byte[headerSize + xLength + yLength];
+			var bytes = new Byte[sizeof(Int32) + ecPoint.X.Length + sizeof(Int32) + ecPoint.Y.Length];
 			using (var ms = new MemoryStream(bytes))
+			using (var bw = new BinaryWriter(ms))
 			{
-				ms.Write(AsBytes(ref xLength));
-				ms.Write(AsBytes(ref yLength));
-				ms.Write(ecPoint.X);
-				ms.Write(ecPoint.Y);
+				bw.Write(ecPoint.X.Length);
+				bw.Write(ecPoint.X);
+				bw.Write(ecPoint.Y.Length);
+				bw.Write(ecPoint.Y);
 			}
 			return bytes;
 		}
@@ -68,18 +63,12 @@ namespace TheBlockchainTM
 		private static ECPoint GetEcPoint(Byte[] bytes)
 		{
 			using (var ms = new MemoryStream(bytes))
-			{
-				var xLength = 0;
-				var yLength = 0;
-				ms.Read(AsBytes(ref xLength));
-				ms.Read(AsBytes(ref yLength));
-				var ecPoint = new ECPoint { X = new Byte[xLength], Y = new Byte[yLength] };
-				ms.Read(ecPoint.X, 0, xLength);
-				ms.Read(ecPoint.Y, 0, yLength);
-				return ecPoint;
-			}
+			using (var br = new BinaryReader(ms))
+				return new ECPoint
+				{
+					X = br.ReadBytes(br.ReadInt32()),
+					Y = br.ReadBytes(br.ReadInt32())
+				};
 		}
-
-		private static Span<Byte> AsBytes<T>(ref T reference) where T : unmanaged => MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref reference, 1));
 	}
 }
