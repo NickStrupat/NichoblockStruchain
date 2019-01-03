@@ -20,7 +20,7 @@ namespace NodeWebApi.DataModel
 		public Node(String name)
 		{
 			Name = name ?? throw new ArgumentNullException(nameof(name));
-			(PublicKey, PrivateKey) = DigitalSignature.GenerateNewPublicPrivateKeyPair();
+			(PublicKey, PrivateKey) = DigitalSignature.GenerateKeys();
 		}
 
 		public HashSet<Block> Blocks { get; private set; } = new HashSet<Block>();
