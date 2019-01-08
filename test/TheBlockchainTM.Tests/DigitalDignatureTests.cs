@@ -16,6 +16,13 @@ namespace TheBlockchainTM.Tests
 		}
 
 		[Fact]
+		public void GeneratingMultipleKeyPairsAreAllUnique()
+		{
+			var keyPairs = Enumerable.Range(0, 100).Select(x => DigitalSignature.GenerateKeys()).ToArray();
+			Assert.Equal(keyPairs, keyPairs.Distinct());
+		}
+
+		[Fact]
 		public void GetSignature()
 		{
 			var keys = DigitalSignature.GenerateKeys();
