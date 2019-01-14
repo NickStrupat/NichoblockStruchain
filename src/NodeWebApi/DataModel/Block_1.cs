@@ -1,63 +1,92 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Reflection;
 using MessagePack;
+using MessagePack.Resolvers;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TheBlockchainTM;
 
 namespace NodeWebApi.DataModel
 {
-	public class Block<TData> : IEquatable<Block<TData>> where TData : IEquatable<TData>
+	public class Block
 	{
 		public Guid Id { get; private set; } = Guid.NewGuid();
 		public Int64 NodeId { get; set; }
 		public DateTime Timestamp { get; private set; } = DateTime.UtcNow;
 		//public Byte[] PreviousHash { get; protected set; }
-		public TData Data { get; private set; }
-		[Required]
+		public String Data { get; private set; }
 		public Byte[] Signature { get; private set; }
 		//public Byte[] Hash { get; protected set; }
-		[Required]
 		public Node Node { get; set; }
+
+		public static void OnModelCreating(EntityTypeBuilder<Block> entityTypeBuilder)
+		{
+			entityTypeBuilder
+				.Property(x => x.Data)
+				.IsRequired();
+
+			entityTypeBuilder
+				.Property(x => x.Signature)
+				.IsRequired();
+
+			entityTypeBuilder
+				.Property(x => x.Node)
+				.IsRequired();
+
+			entityTypeBuilder
+				.HasIndex(b => b.Timestamp);
+
+			entityTypeBuilder
+				.HasOne(b => b.Node)
+				.WithMany(n => n.Blocks)
+				.HasForeignKey(b => b.NodeId)
+				.HasPrincipalKey(n => n.Id);
+
+			entityTypeBuilder
+				.HasKey(b => new { b.Id, b.NodeId });
+		}
 
 		private Block() { }
 
-		public Block(TData data) =>
+		public Block(String data) =>
 			Data = IsDataNullable && data == null ? throw new ArgumentNullException(nameof(data)) : data;
-
-		//public Block(Byte[] previousHash, TData data)
-		//{
-		//	Timestamp = DateTime.UtcNow;
-		//	PreviousHash = previousHash;
-		//	Data = IsDataNullable && data == null ? throw new ArgumentNullException(nameof(data)) : data;
-		//	Hash = CalculateHash();
-		//}
 
 		public void Sign()
 		{
 			if (Node == null)
 				throw new InvalidOperationException($"`{Node}` property must be loaded to sign.");
-			Signature = null;
-			var bytes = MessagePackSerializer.Serialize(this, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
-			Signature = DigitalSignature.GetSignature(bytes, Node.PublicKey, Node.PrivateKey);
+
+			var combined = GetBlockBytes();
+			Signature = DigitalSignature.GetSignature(combined, Node.PublicKey, Node.PrivateKey);
+		}
+
+		private Byte[] GetBlockBytes()
+		{
+			var formatterResolver = ContractlessStandardResolver.Instance;
+			var dataAsMessagePackBytes =
+				HasMessagePackObjectAttribute(Data)
+					? MessagePackSerializer.Serialize(Data)
+					: MessagePackSerializer.Serialize(Data, formatterResolver);
+			var metadataAsMessagePackBytes = MessagePackSerializer.Serialize((Id, NodeId, Timestamp), formatterResolver);
+			return metadataAsMessagePackBytes.Concat(dataAsMessagePackBytes).ToArray();
 		}
 
 		public Boolean IsSignatureValid()
 		{
+			if (Signature == null)
+				return false;
 			if (Node == null)
 				throw new InvalidOperationException($"`{Node}` property must be loaded to verify the signature.");
-			var signature = Signature;
-			Signature = null;
-			var bytes = MessagePackSerializer.Serialize(this, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
-			var isValid = DigitalSignature.VerifySignature(bytes, signature, Node.PublicKey);
-			Signature = signature;
-			return isValid;
+			var bytes = GetBlockBytes();
+			return DigitalSignature.VerifySignature(bytes, Signature, Node.PublicKey);
 		}
 
-		public Boolean Equals(Block<TData> other) => !ReferenceEquals(null, other) && EqualsInternal(other);
+		public Boolean Equals(Block other) => !ReferenceEquals(null, other) && EqualsInternal(other);
 
-		public override Boolean Equals(Object obj) => obj is Block<TData> other && EqualsInternal(other);
+		public override Boolean Equals(Object obj) => obj is Block other && EqualsInternal(other);
 
-		private Boolean EqualsInternal(Block<TData> other)
+		private Boolean EqualsInternal(Block other)
 		{
 			if (ReferenceEquals(this, other))
 				return true;
@@ -65,11 +94,14 @@ namespace NodeWebApi.DataModel
 				Id == other.Id &&
 				Timestamp.Equals(other.Timestamp) &&
 				//Equals(PreviousHash, other.PreviousHash) &&
-				EqualityComparer<TData>.Default.Equals(Data, other.Data);// &&
+				EqualityComparer<String>.Default.Equals(Data, other.Data);// &&
 			//Equals(Hash, other.Hash);
 		}
 
 		private static readonly Boolean IsDataNullable = !typeof(TData).IsValueType;
+
+		private static Boolean HasMessagePackObjectAttribute(TData data) =>
+			data.GetType().GetCustomAttribute<MessagePackObjectAttribute>(inherit:true) != null;
 		//private TData SafeData => IsDataNullable ? Data ?? 
 
 		public override Int32 GetHashCode() =>
