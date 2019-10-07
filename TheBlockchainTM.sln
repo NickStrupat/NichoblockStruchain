@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.106
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29319.158
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TheBlockchainTM", "src\TheBlockchainTM\TheBlockchainTM.csproj", "{65D97248-08E4-463D-92DA-5FBC08408EF4}"
 EndProject
@@ -18,7 +18,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Console", "src\Console\Console.csproj", "{F8952F07-C156-4670-891A-250DC48A61D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Console", "src\Console\Console.csproj", "{F8952F07-C156-4670-891A-250DC48A61D2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crypto", "src\Crypto\Crypto.csproj", "{5209EF7A-FF2C-4824-9536-C6B1E6D7BC77}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,6 +44,10 @@ Global
 		{F8952F07-C156-4670-891A-250DC48A61D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8952F07-C156-4670-891A-250DC48A61D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8952F07-C156-4670-891A-250DC48A61D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5209EF7A-FF2C-4824-9536-C6B1E6D7BC77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5209EF7A-FF2C-4824-9536-C6B1E6D7BC77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5209EF7A-FF2C-4824-9536-C6B1E6D7BC77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5209EF7A-FF2C-4824-9536-C6B1E6D7BC77}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -51,6 +57,7 @@ Global
 		{E5D9904F-227E-4972-9105-BDA536F6B055} = {51942724-B5E4-4210-B330-55B87A110226}
 		{B3169813-995B-4F18-A9EA-66572A29B7AF} = {0B7404BD-2869-4572-8FCD-97811AAD7EC8}
 		{F8952F07-C156-4670-891A-250DC48A61D2} = {0B7404BD-2869-4572-8FCD-97811AAD7EC8}
+		{5209EF7A-FF2C-4824-9536-C6B1E6D7BC77} = {0B7404BD-2869-4572-8FCD-97811AAD7EC8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {32D95477-0EE7-40F8-9761-5CFAA9F2A309}
