@@ -1,37 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TheBlockchainTM;
 
 namespace NodeWebApi.DataModel
 {
 	public class Node
 	{
-		public Guid Id { get; private set; } = Guid.NewGuid();
+		public Guid Id { get; private set; }
+        public String Name { get; private set; }
+        public Byte[] PublicKey { get; private set; }
+        public Byte[] PrivateKey { get; private set; }
 
-		[Required]
-		public String Name { get; private set; }
-
-		[Required]
-		public Byte[] PublicKey { get; private set; }
-
-		public Byte[] PrivateKey { get; private set; }
+		public HashSet<Block> Blocks { get; private set; }
 
 		public Node(String name)
 		{
 			Name = name ?? throw new ArgumentNullException(nameof(name));
-			var (publicKey, privateKey) = DigitalSignature.GenerateNewPublicPrivateKeyPair();
-			PublicKey = publicKey;
-			PrivateKey = privateKey;
+			Id = Guid.NewGuid();
+			(PublicKey, PrivateKey) = DigitalSignature.GenerateKeys();
+			Blocks = new HashSet<Block>();
 		}
 
-		//public Node(String name, Byte[] publicKey, Byte[] privateKey)
-		//{
-		//	Name = name ?? throw new ArgumentNullException(nameof(name));
-		//	PublicKey = publicKey;
-		//	PrivateKey = privateKey;
-		//}
+        public static void OnModelCreating(EntityTypeBuilder<Node> entityTypeBuilder)
+        {
+	        entityTypeBuilder
+		        .HasKey(x => x.Id);
 
-		public HashSet<Block> Blocks { get; set; } = new HashSet<Block>();
-	}
+            entityTypeBuilder
+                .Property(x => x.Name)
+                .IsRequired();
+
+            entityTypeBuilder
+                .Property(x => x.PublicKey)
+                .IsRequired();
+
+            entityTypeBuilder
+	            .HasIndex(n => n.Name)
+	            .IsUnique();
+		}
+    }
 }

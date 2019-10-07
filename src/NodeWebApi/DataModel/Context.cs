@@ -1,4 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Linq;
+using System.Reflection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace NodeWebApi.DataModel
 {
@@ -15,21 +19,36 @@ namespace NodeWebApi.DataModel
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			modelBuilder.Entity<Block>()
-				.HasIndex(b => b.Timestamp);
+			InvokeEntityTypeBuilderMethods(modelBuilder);
+		}
 
-			modelBuilder.Entity<Block>()
-				.HasOne(b => b.Node)
-				.WithMany(n => n.Blocks)
-				.HasForeignKey(b => b.NodeId)
-				.HasPrincipalKey(n => n.Id);
+		private void InvokeEntityTypeBuilderMethods(ModelBuilder modelBuilder)
+		{
+			var entityTypes =
+				from propertyInfo in GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+				where propertyInfo.PropertyType.IsGenericType &&
+				      propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>)
+				select propertyInfo.PropertyType.GetGenericArguments().Single();
 
-			modelBuilder.Entity<Block>()
-				.HasKey(b => new {b.Id, b.NodeId});
+			var entityMethodInfo = new Func<EntityTypeBuilder<Object>>(modelBuilder.Entity<Object>).Method
+				.GetGenericMethodDefinition();
+			var modelCreatingTypes =
+				from entityType in entityTypes
+				let methodInfos = entityType.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+				let firstMethodInfo =
+					methodInfos.FirstOrDefault(x =>
+						x.ReturnType == typeof(void) &&
+						x.GetParameters().Count(y =>
+							y.ParameterType == typeof(EntityTypeBuilder<>).MakeGenericType(entityType)
+						) == 1
+					)
+				where firstMethodInfo != null
+				let entityTypeBuilder =
+					entityMethodInfo.MakeGenericMethod(entityType).Invoke(modelBuilder, Array.Empty<Object>())
+				select (EntityTypeBuilder: entityTypeBuilder, MethodInfo: firstMethodInfo);
 
-			modelBuilder.Entity<Node>()
-				.HasIndex(n => n.Name)
-				.IsUnique();
+			foreach (var (entityTypeBuilder, methodInfo) in modelCreatingTypes)
+				methodInfo.Invoke(null, new[] {entityTypeBuilder});
 		}
 	}
 }
