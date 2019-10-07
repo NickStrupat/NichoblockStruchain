@@ -21,9 +21,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Console", "src\Console\Console.csproj", "{F8952F07-C156-4670-891A-250DC48A61D2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crypto", "src\Crypto\Crypto.csproj", "{5209EF7A-FF2C-4824-9536-C6B1E6D7BC77}"
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Console", "src\Console\Console.csproj", "{F8952F07-C156-4670-891A-250DC48A61D2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheBlockchainTM.Tests", "test\TheBlockchainTM.Tests\TheBlockchainTM.Tests.csproj", "{D59D1993-D271-4A3C-979C-140FBD689F90}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TheBlockchainTM.Tests", "test\TheBlockchainTM.Tests\TheBlockchainTM.Tests.csproj", "{D59D1993-D271-4A3C-979C-140FBD689F90}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
