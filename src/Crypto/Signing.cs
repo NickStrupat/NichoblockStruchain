@@ -14,10 +14,10 @@ namespace Crypto
 		public static Key CreateKeyPair() =>
 			Key.Create(algorithm);
 
-		public static void Sign(in Key key, in ReadOnlySpan<Byte> data, in Span<Byte> signature) =>
+		public static void Sign(Key key, ReadOnlySpan<Byte> data, Span<Byte> signature) =>
 			algorithm.Sign(key, data, signature);
 
-		public static Boolean Verify(in PublicKey publicKey, in ReadOnlySpan<Byte> data, in ReadOnlySpan<Byte> signature) =>
+		public static Boolean Verify(PublicKey publicKey, ReadOnlySpan<Byte> data, ReadOnlySpan<Byte> signature) =>
 			algorithm.Verify(publicKey, data, signature);
 	}
 }
