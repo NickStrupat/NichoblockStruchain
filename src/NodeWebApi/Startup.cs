@@ -22,7 +22,7 @@ namespace NodeWebApi
 		{
 			services
 				.AddMvc()
-				.SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+				.SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
 
 			services
 				.AddDbContext<Context>()
@@ -30,12 +30,12 @@ namespace NodeWebApi
 				.AddSingleton<HashSet<IPEndPoint>>();
 		}
 
-		IApplicationBuilder UseDevOrProd(IApplicationBuilder app, IHostingEnvironment env) =>
+		IApplicationBuilder UseDevOrProd(IApplicationBuilder app, IWebHostEnvironment env) =>
 			env.IsDevelopment()
 				? app.UseDeveloperExceptionPage()
 				: app.UseHsts(); // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 
-		public void Configure(IApplicationBuilder app, IHostingEnvironment env) =>
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env) =>
 			UseDevOrProd(app, env)
 				.UseHttpsRedirection()
 				.UseMvc(rb => rb.MapRoute("default", "{controller=Command}/{action=Status}/{id?}"))
