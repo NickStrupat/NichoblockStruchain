@@ -11,8 +11,14 @@ namespace Crypto
 		public static Int32 SignatureSize =>
 			algorithm.SignatureSize;
 
+		public static Int32 PublicKeySize =>
+			algorithm.PublicKeySize;
+
+		public static Int32 PrivateKeySize =>
+			algorithm.PrivateKeySize;
+
 		public static Key CreateKeyPair() =>
-			Key.Create(algorithm);
+			Key.Create(algorithm, new KeyCreationParameters { ExportPolicy = KeyExportPolicies.AllowPlaintextExport });
 
 		public static void Sign(Key key, ReadOnlySpan<Byte> data, Span<Byte> signature) =>
 			algorithm.Sign(key, data, signature);
