@@ -1,5 +1,8 @@
-﻿using System;
+﻿using NSec.Cryptography;
+using System;
+using System.Buffers.Binary;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -10,33 +13,42 @@ namespace Crypto
 		private readonly Span<Byte> bytes;
 		public Ed25519SignedBlock(Span<Byte> bytes) => this.bytes = bytes;
 
-		public Int64 UnixTimeMilliseconds {
-			get => MemoryMarshal.Read<Int64>(bytes.Slice(UnixTimeMillisecondsOffset, UnixTimeMillisecondsSize));
-			set => MemoryMarshal.Write(bytes.Slice(UnixTimeMillisecondsOffset, UnixTimeMillisecondsSize), ref value);
+		public static Ed25519SignedBlock CreateSigned(in Ed25519SignedBlock previous, Span<Byte> bytes, ReadOnlySpan<Byte> data, Key key)
+		{
+			var block = new Ed25519SignedBlock(bytes);
+			previous.Signature.CopyTo(block.PreviousSignature);
+			block.DataSize = data.Length;
+			data.CopyTo(block.Data);
+			block.Sign(key);
+			return block;
 		}
+
+		public Int64 UnixTimeMilliseconds {
+			get => BinaryPrimitives.ReadInt64LittleEndian(UnixTimeMillisecondsBytes);
+			set => BinaryPrimitives.WriteInt64LittleEndian(UnixTimeMillisecondsBytes, value);
+		}
+		private Span<Byte> UnixTimeMillisecondsBytes => bytes.Slice(UnixTimeMillisecondsOffset, UnixTimeMillisecondsSize);
 		private static readonly Int32 UnixTimeMillisecondsOffset = 0;
 		private static readonly Int32 UnixTimeMillisecondsSize = sizeof(Int64);
 
-		public Span<Byte> PreviousSignature => bytes.Slice(PreviousSignatureOffset, PreviousSignatureSize);
-		private static readonly Int32 PreviousSignatureOffset = UnixTimeMillisecondsOffset + UnixTimeMillisecondsSize;
-		private static readonly Int32 PreviousSignatureSize = Signing.SignatureSize;
-
 		public Span<Byte> Signature => bytes.Slice(SignatureOffset, SignatureSize);
-		private static readonly Int32 SignatureOffset = PreviousSignatureOffset + PreviousSignatureSize;
-		private static readonly Int32 SignatureSize = Signing.SignatureSize;
+		private static readonly Int32 SignatureOffset = UnixTimeMillisecondsOffset + UnixTimeMillisecondsSize;
+		private static readonly Int32 SignatureSize = SignatureAlgorithm.Ed25519.SignatureSize;
 
-		public Span<Byte> PublicKey {
-			get => bytes.Slice(PublicKeyOffset, PublicKeySize);
-			set => value.CopyTo(bytes.Slice(PublicKeyOffset, PublicKeySize));
-		}
+		public Span<Byte> PublicKey => bytes.Slice(PublicKeyOffset, PublicKeySize);
 		private static readonly Int32 PublicKeyOffset = SignatureOffset + SignatureSize;
-		private static readonly Int32 PublicKeySize = Signing.PublicKeySize;
+		private static readonly Int32 PublicKeySize = SignatureAlgorithm.Ed25519.PublicKeySize;
+
+		public Span<Byte> PreviousSignature => bytes.Slice(PreviousSignatureOffset, PreviousSignatureSize);
+		private static readonly Int32 PreviousSignatureOffset = PublicKeyOffset + PublicKeySize;
+		private static readonly Int32 PreviousSignatureSize = SignatureAlgorithm.Ed25519.SignatureSize;
 
 		public Int32 DataSize {
-			get => MemoryMarshal.Read<Int32>(bytes.Slice(DataSizeOffset, DataSizeSize));
-			set => MemoryMarshal.Write(bytes.Slice(DataSizeOffset, DataSizeSize), ref value);
+			get => BinaryPrimitives.ReadInt32LittleEndian(DataSizeBytes);
+			set => BinaryPrimitives.WriteInt32LittleEndian(DataSizeBytes, value);
 		}
-		private static readonly Int32 DataSizeOffset = PublicKeyOffset + PublicKeySize;
+		private Span<Byte> DataSizeBytes => bytes.Slice(DataSizeOffset, DataSizeSize);
+		private static readonly Int32 DataSizeOffset = PreviousSignatureOffset + PreviousSignatureSize;
 		private static readonly Int32 DataSizeSize = sizeof(Int32);
 
 		public Span<Byte> Data => bytes.Slice(DataOffset, DataSize);
@@ -45,6 +57,20 @@ namespace Crypto
 		public static Int32 SizeWithoutData { get; } = DataOffset;
 
 		public Int32 Size => SizeWithoutData + DataSize;
+
+		private ReadOnlySpan<Byte> BytesForSignature => bytes.Slice(PreviousSignatureOffset, PreviousSignatureSize + DataSizeSize + DataSize);
+
+		public void Sign(Key key)
+		{
+			key.PublicKey.Export(KeyBlobFormat.RawPublicKey).CopyTo(PublicKey);
+			SignatureAlgorithm.Ed25519.Sign(key, BytesForSignature, Signature);
+		}
+
+		public Boolean Verify()
+		{
+			var publicKey = NSec.Cryptography.PublicKey.Import(SignatureAlgorithm.Ed25519, PublicKey, KeyBlobFormat.RawPublicKey);
+			return SignatureAlgorithm.Ed25519.Verify(publicKey, BytesForSignature, Signature);
+		}
 	}
 
 	public ref struct Block
